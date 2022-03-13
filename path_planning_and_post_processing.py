@@ -63,9 +63,13 @@ def path_planning(env, q):
   end = environment_2d.Sample(x_goal, y_goal, -1)
   run = True
   main_group = None
+  running = 0
 
   # random sample will be generated until all conditions are fufilled
   while run:
+    if running % 100 == 0:
+      print("Random sample of", running,"created...")
+    running = running + 1
     x = random.random() * MAX_X
     y = random.random() * MAX_Y
     if env.check_collision(x, y) == False:
@@ -95,6 +99,7 @@ def path_planning(env, q):
             break
         if run == False:
           break
+  print("Total sample of", running,"created.")
   return groups[main_group], start, end
 
 def astar_search(nodes, start, end):
@@ -127,6 +132,8 @@ def astar_search(nodes, start, end):
     pq.pop(u_key, None)
     current_node = nodes[u_key]
     for neighbors in current_node.neighbors:
+      if neighbors not in mapping:
+        continue
       v_key = mapping[neighbors]
       dist = cal_straight_line_dist(neighbors.get_coord(), end.get_coord())
       if visited[v_key] != 1 and gf[u_key]+1 + dist < gf[v_key] + hf[v_key]:
