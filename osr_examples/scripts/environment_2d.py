@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
-import pylab as pl
-pl.ion()
+import matplotlib.pyplot as pl
 
 
 class TriangularObstacle(object):
@@ -77,6 +76,43 @@ class Environment(object):
         return True
     return False
 
+  def line_intersection_test(self, s0, s1, t0, t1):
+    p0_x, p0_y = s0
+    p1_x, p1_y = s1
+    p2_x, p2_y = t0
+    p3_x, p3_y = t1
+
+    s1_x = float(p1_x - p0_x)
+    s1_y = float(p1_y - p0_y)
+    s2_x = float(p3_x - p2_x)
+    s2_y = float(p3_y - p2_y)
+    outcome = 0
+
+    s = float (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y)
+    t = float ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y)
+
+    if (s >= 0 and s <= 1 and t >= 0 and t <= 1):
+        outcome = 1
+
+    return outcome
+
+  def check_intersect(self, s0, s1):
+    for ob in self.obs:
+      p0 = [ob.x0, ob.y0]
+      p1 = [ob.x1, ob.y1]
+      p2 = [ob.x2, ob.y2]
+      
+      side_1_test = self.line_intersection_test(s0, s1, p0, p1)
+      side_2_test = self.line_intersection_test(s0, s1, p1, p2)
+      side_3_test = self.line_intersection_test(s0, s1, p0, p2)
+
+      result = side_1_test + side_2_test + side_3_test
+
+      if result > 0:
+        return False
+
+    return True
+
   def random_query(self):
     max_attempts = 100
     found_start = False
@@ -106,3 +142,24 @@ class Environment(object):
   def plot_query(self, x_start, y_start, x_goal, y_goal):
     pl.plot([x_start], [y_start], "bs", markersize = 8)
     pl.plot([x_goal], [y_goal], "y*", markersize = 12)
+
+class Sample(object):
+  def __init__(self, x, y, group):
+    self.x = x
+    self.y = y
+    self.group = group
+    self.neighbors = []
+    pl.plot([x], [y], "g.", markersize = 1)
+
+  def get_coord(self):
+    return [self.x, self.y]
+
+  def get_group(self):
+    return self.group
+
+  def set_group(self, group):
+    self.group = group
+
+  def add_neighbors(self, sample):
+    self.neighbors.append(sample)
+
